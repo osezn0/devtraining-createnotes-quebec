@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[/* Original code
+api.controller=function() {
+  // widget controller
+  var c = this;
+};
+*/
+function ($scope, $rootScope) {
+	//widget controller
+	var c = this;
+	//catch what is emitted from the Notes List widget
+	//Specifically listening for selectNote
+	$rootScope.$on('selectNote', function(event, data) {
+		//this.server.get() calls the server script and passess custom input
+		//this.server.get() returns a promise. When the response is received from the server
+		//.then() function logic executes
+		c.server.get({
+			action: 'getNote',
+			noteID: $rootScope.noteID
+		}).then(function (r) {
+			c.data.title = r.data.note.title;
+			c.data.note = r.data.note.note;
+			c.data.noteID = r.data.note.sys_id;
+		});
+		//Log to the console the NoteID (sys_id) of the record selected
+		//console.log('Listener caught NodeID: ' + $rootScope.noteID);
+	});
+	
+	//ng-change directive in HTML Template calls updateNote()
+	c.updateNote = function (updateType) {
+		c.server.get({
+			action: 'updateNote',
+			noteID: c.data.noteID,
+			noteBody: c.data.note,
+			noteTitle: c.data.title
+		}).then(function (r) {});
+	}
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css/>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>notes_body</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>Notes Body</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+	//populate the 'data' object
+	//input object is the data object received from the Client Script's controller
+	if (input && input.noteID) {
+		var note = new GlideRecord('x_snc_createnotes_note');
+		
+		if (note.get(input.noteID)) {
+			if (input.action == 'getNote') {
+				data.note = {};
+				//$sp.getRecordValues(Object, GlideRecord, String);
+				//$sp.getRecordValues(data, from, fieldNamesCommaSeparated);
+				//copies values for the specified field names from the GlideRecord into the data parameter.
+				$sp.getRecordValues(data.note, note, 'title, note, sys_id');
+			} else if (input.action == 'updateNote') {
+				//input object is received from the Client Script
+				note.title = input.noteTitle;
+				note.note = input.noteBody;
+				note.update();
+			}
+			
+		}
+	}
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2021-05-14 18:52:54</sys_created_on>
+        <sys_id>f076193a2fc4b8109a34877cf699b6b1</sys_id>
+        <sys_mod_count>13</sys_mod_count>
+        <sys_name>Notes Body</sys_name>
+        <sys_package display_value="CreateNotes" source="x_snc_createnotes">df5fd9a5090232007f44e1046c8ff69f</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CreateNotes">df5fd9a5090232007f44e1046c8ff69f</sys_scope>
+        <sys_update_name>sp_widget_f076193a2fc4b8109a34877cf699b6b1</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-05-16 05:32:42</sys_updated_on>
+        <template><![CDATA[<div class = 'panel panel-default' ng-show = 'c.data.noteID'>
+  <!-- Show the record title as the 'header' of the Notes Body widget -->
+  <div class = 'panel-heading clearfix'>
+    <div class = 'row'>
+      <div class = 'col-md-12'>
+        <!--
+				ng-change directive evaluates the given expression when the user changes the input. The expression is evaluated immediately, unlike the JavaScript onchange event which only triggers at the end of a change
+				ng-model-options directive settings are found by evaluating the value of the attribute directive as an AngularJS expression. This expression should evaluate to an object, whose properties contain the settings
+				debouncing delay so that the actual update only takes place when a timer expires
+				-->
+        <input class = 'form-control' id = 'note-title' ng-model = 'c.data.title' ng-change = 'c.updateNote("title")' ng-model-options = '{debounce: 1000}' />
+      </div>
+    </div>
+  </div>
+  <!-- Show the record note as the 'body' of the Notes Body widget -->
+  <div class = 'panel-body'>
+    <!--
+		ng-change directive evaluates the given expression when the user changes the input. The expression is evaluated immediately, unlike the JavaScript onchange event which only triggers at the end of a change
+    ng-model-options directive settings are found by evaluating the value of the attribute directive as an AngularJS expression. This expression should evaluate to an object, whose properties contain the settings
+    debouncing delay so that the actual update only takes place when a timer expires
+		-->
+    <textarea class = 'form-control' id = 'note-body' ng-model = 'c.data.note' ng-change = 'c.updateNote("body")' ng-model-options = '{debounce: 1000}' ></textarea>
+  </div>
+</div>]]></template>
+    </sp_widget>
+</record_update>
